@@ -1,0 +1,32 @@
+{
+  "name": "geofacts---world-explorer-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "tailwind": "npx tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
+    "prettier": "npx prettier --write **/*.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshvardhansingh3000/GeoFacts-World-Explorer-Dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harshvardhansingh3000/GeoFacts-World-Explorer-Dashboard/issues"
+  },
+  "homepage": "https://github.com/harshvardhansingh3000/GeoFacts-World-Explorer-Dashboard#readme",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.10",
+    "axios": "^1.10.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "pg": "^8.16.2",
+    "tailwindcss": "^4.1.10"
+  }
+}
