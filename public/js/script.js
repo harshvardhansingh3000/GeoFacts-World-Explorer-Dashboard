@@ -1,4 +1,4 @@
-var map = L.map('map').setView([20, 0], 2);
+var map = L.map('map').setView([20, 0], 2.5);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -7,19 +7,104 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // User login state from data attribute
 const userIsLoggedIn = document.body.dataset.loggedIn === 'true';
+let currentCountryCode = null; // Track selected country code
+let visitedCountries = new Set(); // Track visited countries
+let wishlistCountries = new Set(); // Track wishlist countries
+let geoJsonLayer = null; // Store the GeoJSON layer for updating colors
+
+// FAB logic
+const fabContainer = document.getElementById('fab-container');
+if (fabContainer) fabContainer.classList.add('hidden'); // Hide FAB on load
+
+// Load user's visited and wishlist countries if logged in
+async function loadUserData() {
+    if (!userIsLoggedIn) return;
+    
+    try {
+        // Load visited countries
+        const visitedResponse = await fetch('/country/visited');
+        const visitedData = await visitedResponse.json();
+        visitedCountries = new Set(visitedData.visitedCountries);
+        
+        // Load wishlist countries
+        const wishlistResponse = await fetch('/country/wishlist');
+        const wishlistData = await wishlistResponse.json();
+        wishlistCountries = new Set(wishlistData.wishlistCountries);
+        
+        console.log('Loaded visited countries:', visitedCountries);
+        console.log('Loaded wishlist countries:', wishlistCountries);
+        
+        // Update map colors after loading data
+        if (geoJsonLayer) {
+            updateMapColors();
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+    }
+}
+
+// Function to get country color based on status
+function getCountryColor(countryCode) {
+    if (visitedCountries.has(countryCode)) {
+        return '#10B981'; // Green for visited
+    } else if (wishlistCountries.has(countryCode)) {
+        return '#F59E0B'; // Yellow for wishlist
+    } else {
+        return '#ccc'; // Default gray
+    }
+}
+
+// Function to update map colors
+function updateMapColors() {
+    if (!geoJsonLayer) return;
+    
+    geoJsonLayer.eachLayer(layer => {
+        const countryCode = layer.feature.properties["ISO3166-1-Alpha-2"];
+        if (countryCode) {
+            layer.setStyle({
+                color: getCountryColor(countryCode),
+                weight: 1,
+                fillOpacity: visitedCountries.has(countryCode) ? 0.6 : 
+                           wishlistCountries.has(countryCode) ? 0.4 : 0.1
+            });
+        }
+    });
+}
+
+// Function to update a specific country's color
+function updateCountryColor(countryCode) {
+    if (!geoJsonLayer) return;
+    
+    geoJsonLayer.eachLayer(layer => {
+        const layerCountryCode = layer.feature.properties["ISO3166-1-Alpha-2"];
+        if (layerCountryCode === countryCode) {
+            layer.setStyle({
+                color: getCountryColor(countryCode),
+                weight: 1,
+                fillOpacity: visitedCountries.has(countryCode) ? 0.6 : 
+                           wishlistCountries.has(countryCode) ? 0.4 : 0.1
+            });
+        }
+    });
+}
 
 // GeoJSON
 fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson")
   .then(res => res.json())
   .then(geoData => {
-    L.geoJSON(geoData, {
-      style: {
-        color: "#ccc",
-        weight: 1,
-        fillOpacity: 0.1
+    geoJsonLayer = L.geoJSON(geoData, {
+      style: function(feature) {
+        const countryCode = feature.properties["ISO3166-1-Alpha-2"];
+        return {
+          color: getCountryColor(countryCode),
+          weight: 1,
+          fillOpacity: visitedCountries.has(countryCode) ? 0.6 : 
+                     wishlistCountries.has(countryCode) ? 0.4 : 0.1
+        };
       },
       onEachFeature: function (feature, layer) {
         layer.on('click', function () {
+          console.log(feature.properties);
           const countryName = feature.properties.name;
           const code = feature.properties["ISO3166-1-Alpha-2"]; // Use Alpha-2 for compatibility
 
@@ -29,6 +114,12 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
           }
 
           console.log(`Clicked on: ${countryName} [${code}]`);
+          console.log('Setting currentCountryCode:', code);
+          currentCountryCode = code; // Set the selected country code
+          if (fabContainer) fabContainer.classList.remove('hidden'); // Show FAB
+
+          // Update FAB button states based on current country status
+          updateFABButtonStates(code);
 
           // Fetch from REST Countries
           fetch(`https://restcountries.com/v3.1/alpha/${code}`)
@@ -83,51 +174,41 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
                 displayWeather(null);
                 displayAQI(null);
               }
-
-              if (userIsLoggedIn) { // You can set this variable from EJS
-                document.getElementById('mark-visited').onclick = function() {
-                  fetch('/country/visited', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country_code: code })
-                  })
-                  .then(res => res.json())
-                  .then(data => showToast(data.message || 'Marked as visited!', 'bg-green-600'))
-                  .catch(() => showToast('Error marking as visited', 'bg-red-600'));
-                };
-
-                document.getElementById('add-wishlist').onclick = function() {
-                  fetch('/country/wishlist', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country_code: code })
-                  })
-                  .then(res => res.json())
-                  .then(data => showToast(data.message || 'Added to wishlist!', 'bg-yellow-500'))
-                  .catch(() => showToast('Error adding to wishlist', 'bg-red-600'));
-                };
-
-                document.getElementById('note-form').onsubmit = function(e) {
-                  e.preventDefault();
-                  fetch('/country/note', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country_code: code, note: document.getElementById('note-text').value })
-                  })
-                  .then(res => res.json())
-                  .then(data => showToast(data.message || 'Note saved!', 'bg-blue-600'))
-                  .catch(() => showToast('Error saving note', 'bg-red-600'));
-                };
-              }
-
-              currentCountryCode = code; // where 'code' is the selected country's code
             })
             .catch(err => console.error("REST Countries API error:", err));
         });
       }
     }).addTo(map);
+    
+    // Load user data after map is created
+    loadUserData();
   })
   .catch(err => console.error("GeoJSON load error:", err));
+
+// Function to update FAB button states and text
+function updateFABButtonStates(countryCode) {
+    if (!userIsLoggedIn) return;
+    
+    const isVisited = visitedCountries.has(countryCode);
+    const isInWishlist = wishlistCountries.has(countryCode);
+    
+    const fabVisited = document.getElementById('fab-visited');
+    const fabWishlist = document.getElementById('fab-wishlist');
+    
+    if (fabVisited) {
+        fabVisited.textContent = isVisited ? '✓ Visited' : '○ Mark Visited';
+        fabVisited.className = isVisited ? 
+            'fab-button bg-green-600 hover:bg-green-700' : 
+            'fab-button bg-gray-600 hover:bg-gray-700';
+    }
+    
+    if (fabWishlist) {
+        fabWishlist.textContent = isInWishlist ? '★ In Wishlist' : '☆ Add to Wishlist';
+        fabWishlist.className = isInWishlist ? 
+            'fab-button bg-yellow-600 hover:bg-yellow-700' : 
+            'fab-button bg-gray-600 hover:bg-gray-700';
+    }
+}
 
 // Weather fetching function using OpenWeatherMap API with lat/lon
 async function fetchWeather(lat, lon) {
@@ -225,59 +306,113 @@ function displayAQI(aqiData) {
   document.getElementById('aqi-health').textContent = level.health;
 }
 
-// FAB logic
-if (typeof userIsLoggedIn !== 'undefined' && userIsLoggedIn) {
-  const fabMain = document.getElementById('fab-main');
-  const fabVisited = document.getElementById('fab-visited');
-  const fabWishlist = document.getElementById('fab-wishlist');
-  const fabNote = document.getElementById('fab-note');
-  const noteModal = document.getElementById('note-modal');
-  const noteText = document.getElementById('note-text');
-  const noteCancel = document.getElementById('note-cancel');
-  const noteSave = document.getElementById('note-save');
+// FAB button event listeners (only if elements exist)
+const fabMain = document.getElementById('fab-main');
+const fabVisited = document.getElementById('fab-visited');
+const fabWishlist = document.getElementById('fab-wishlist');
+const fabNote = document.getElementById('fab-note');
+const noteModal = document.getElementById('note-modal');
+const noteText = document.getElementById('note-text');
+const noteCancel = document.getElementById('note-cancel');
+const noteSave = document.getElementById('note-save');
 
-  let fabOpen = false;
+let fabOpen = false;
+if (fabMain) {
   fabMain.onclick = () => {
     fabOpen = !fabOpen;
-    [fabVisited, fabWishlist, fabNote].forEach(btn => btn.classList.toggle('hidden', !fabOpen));
+    [fabVisited, fabWishlist, fabNote].forEach(btn => btn && btn.classList.toggle('hidden', !fabOpen));
     fabMain.textContent = fabOpen ? '×' : '+';
   };
+}
 
-  fabVisited.onclick = () => {
-    fetch('/country/visited', {
-      method: 'POST',
+if (fabVisited) {
+  fabVisited.onclick = function() {
+    console.log('Visited button clicked');
+    console.log('currentCountryCode when clicking FAB:', currentCountryCode);
+    if (!currentCountryCode) {
+      showToast('Please select a country first.', 'bg-red-600');
+      return;
+    }
+    
+    const isVisited = visitedCountries.has(currentCountryCode);
+    const method = isVisited ? 'DELETE' : 'POST';
+    const url = isVisited ? `/country/visited/${currentCountryCode}` : '/country/visited';
+    
+    fetch(url, {
+      method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country_code: currentCountryCode })
+      body: method === 'POST' ? JSON.stringify({ country_code: currentCountryCode }) : undefined
     })
     .then(res => res.json())
-    .then(data => showToast(data.message || 'Marked as visited!', 'bg-green-600'))
-    .catch(() => showToast('Error marking as visited', 'bg-red-600'));
-    fabMain.click();
+    .then(data => {
+      if (isVisited) {
+        visitedCountries.delete(currentCountryCode);
+        showToast(data.message || 'Removed from visited!', 'bg-blue-600');
+      } else {
+        visitedCountries.add(currentCountryCode);
+        showToast(data.message || 'Marked as visited!', 'bg-green-600');
+      }
+      updateCountryColor(currentCountryCode);
+      updateFABButtonStates(currentCountryCode);
+    })
+    .catch(() => showToast('Error updating visited status', 'bg-red-600'));
+    
+    if (fabMain) fabMain.click();
   };
+}
 
-  fabWishlist.onclick = () => {
-    fetch('/country/wishlist', {
-      method: 'POST',
+if (fabWishlist) {
+  fabWishlist.onclick = function() {
+    console.log('Wishlist button clicked');
+    console.log('currentCountryCode when clicking FAB:', currentCountryCode);
+    if (!currentCountryCode) {
+      showToast('Please select a country first.', 'bg-red-600');
+      return;
+    }
+    
+    const isInWishlist = wishlistCountries.has(currentCountryCode);
+    const method = isInWishlist ? 'DELETE' : 'POST';
+    const url = isInWishlist ? `/country/wishlist/${currentCountryCode}` : '/country/wishlist';
+    
+    fetch(url, {
+      method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country_code: currentCountryCode })
+      body: method === 'POST' ? JSON.stringify({ country_code: currentCountryCode }) : undefined
     })
     .then(res => res.json())
-    .then(data => showToast(data.message || 'Added to wishlist!', 'bg-yellow-500'))
-    .catch(() => showToast('Error adding to wishlist', 'bg-red-600'));
-    fabMain.click();
+    .then(data => {
+      if (isInWishlist) {
+        wishlistCountries.delete(currentCountryCode);
+        showToast(data.message || 'Removed from wishlist!', 'bg-blue-600');
+      } else {
+        wishlistCountries.add(currentCountryCode);
+        showToast(data.message || 'Added to wishlist!', 'bg-yellow-500');
+      }
+      updateCountryColor(currentCountryCode);
+      updateFABButtonStates(currentCountryCode);
+    })
+    .catch(() => showToast('Error updating wishlist status', 'bg-red-600'));
+    
+    if (fabMain) fabMain.click();
   };
+}
 
+if (fabNote && noteModal && noteText && noteCancel && noteSave) {
   fabNote.onclick = () => {
     noteModal.classList.remove('hidden');
-    fabMain.click();
+    if (fabMain) fabMain.click();
   };
-
   noteCancel.onclick = () => {
     noteModal.classList.add('hidden');
     noteText.value = '';
   };
-
   noteSave.onclick = () => {
+    console.log('Note save clicked');
+    console.log('currentCountryCode when clicking FAB:', currentCountryCode);
+    if (!currentCountryCode) {
+      showToast('Please select a country first.', 'bg-red-600');
+      return;
+    }
     fetch('/country/note', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

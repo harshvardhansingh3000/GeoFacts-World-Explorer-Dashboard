@@ -71,7 +71,7 @@ export default (passport, db) => {
   // Logout route
   router.get("/logout", (req, res) => {
     req.logout(() => {
-      res.redirect("/login");
+      res.redirect("/");
     });
   });
 

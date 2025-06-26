@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "tailwind": "npx tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
-    "prettier": "npx prettier --write **/*.html"
+    "prettier": "npx prettier --write **/*.html",
+    "setup-db": "node setup-database.js",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
