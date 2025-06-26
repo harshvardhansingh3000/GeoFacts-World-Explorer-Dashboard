@@ -10,9 +10,81 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <link rel="stylesheet" href="/css/custom.css" />
 </head>
-<body>
-    <h1 class = "text-3xl underline text-red-900">GeoFacts</h1>
+<body data-logged-in="<%= user ? 'true' : 'false' %>">
+    <h1 class = "text-3xl underline text-red-900 bg-amber-400">GeoFacts</h1>
     <div id="map"></div>
+    <!-- Side Panel (always visible for debugging) -->
+    <div id="side-panel"
+        class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white dark:bg-gray-900 dark:text-white shadow-lg z-50 overflow-y-auto border-l border-gray-300 transition-transform translate-x-full duration-300 ease-in-out">
+        <button id="close-panel"
+            class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-2xl">&times;</button>
+        <div id="country-info" class="p-6">
+            <div class="flex justify-center mb-4">
+                <img id="country-flag" src="" alt="Flag" class="h-16 w-auto rounded shadow" />
+            </div>
+            <h2 id="country-name" class="text-2xl font-bold mb-2 text-center"></h2>
+            <p id="country-capital" class="mb-1 text-center"></p>
+            <p id="country-region" class="mb-1 text-center"></p>
+            <p id="country-population" class="mb-1 text-center"></p>
+            <p id="country-area" class="mb-1 text-center"></p>
+            <p id="country-languages" class="mb-1 text-center"></p>
+            <p id="country-currency" class="mb-1 text-center"></p>
+            
+            <!-- Weather Section -->
+            <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+              <h3 class="text-lg font-semibold mb-3 text-center">Weather</h3>
+              <div class="flex items-center justify-center mb-2">
+                <img id="weather-icon" src="" alt="Weather" class="w-12 h-12" />
+                <span id="weather-temp" class="text-2xl font-bold ml-2"></span>
+              </div>
+              <p id="weather-description" class="text-center mb-2"></p>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <p id="weather-humidity" class="text-center"></p>
+                <p id="weather-wind" class="text-center"></p>
+              </div>
+            </div>
+            <!-- AQI Section -->
+            <div class="mt-6 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+              <h3 class="text-lg font-semibold mb-3 text-center">Air Quality Index (AQI)</h3>
+              <div class="flex items-center justify-center mb-2">
+                <span id="aqi-value" class="text-2xl font-bold"></span>
+                <span id="aqi-status" class="ml-3 text-lg"></span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <p id="pm25" class="text-center"></p>
+                <p id="pm10" class="text-center"></p>
+              </div>
+              <p id="aqi-health" class="mt-2 text-center text-sm"></p>
+            </div>
+            <!-- Add more fields as needed -->
+        </div>
+    </div>
+
+    <% if (user) { %>
+      <!-- Floating Action Button (FAB) -->
+      <div id="fab-container" class="fixed bottom-8 left-8 z-[100] flex flex-col items-start gap-3">
+        <!-- Action Buttons (hidden by default) -->
+        <button id="fab-visited" class="hidden bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">✅</button>
+        <button id="fab-wishlist" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">⭐</button>
+        <button id="fab-note" class="hidden bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">📝</button>
+        <!-- Main FAB -->
+        <button id="fab-main" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl transition">+</button>
+      </div>
+      <!-- Note Modal -->
+      <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[200] hidden">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+          <h3 class="text-lg font-bold mb-2 text-gray-800 dark:text-gray-100">Add a Note</h3>
+          <textarea id="note-text" class="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:text-gray-100" rows="4" placeholder="Write your note..."></textarea>
+          <div class="flex justify-end gap-2">
+            <button id="note-cancel" class="px-4 py-2 rounded bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100">Cancel</button>
+            <button id="note-save" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+    <% } %>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded shadow-lg z-[200] hidden transition"></div>
+
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

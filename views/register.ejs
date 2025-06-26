@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - GeoFacts</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script>
+    function togglePassword() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('togglePwdIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.textContent = '🙈';
+      } else {
+        pwd.type = 'password';
+        icon.textContent = '👁️';
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen">
+  <form action="/register" method="POST" class="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Register</h2>
+    <div class="mb-4">
+      <label for="name" class="block mb-1 font-semibold text-gray-800 dark:text-gray-200">Name</label>
+      <input type="text" id="name" name="name" required class="w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+    </div>
+    <div class="mb-4">
+      <label for="email" class="block mb-1 font-semibold text-gray-800 dark:text-gray-200">Email</label>
+      <input type="email" id="email" name="email" required class="w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+    </div>
+    <div class="mb-6 relative">
+      <label for="password" class="block mb-1 font-semibold text-gray-800 dark:text-gray-200">Password</label>
+      <input type="password" id="password" name="password" required class="w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 pr-10" />
+      <button type="button" onclick="togglePassword()" tabindex="-1" class="absolute right-2 top-8 text-xl" style="background:none;border:none;outline:none;" aria-label="Show password"><span id="togglePwdIcon">👁️</span></button>
+    </div>
+    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>
+    <p class="mt-4 text-center text-sm text-gray-700 dark:text-gray-300">Already have an account? <a href="/login" class="text-blue-600 dark:text-blue-400 hover:underline">Login</a></p>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mt-4 text-center text-red-600 text-sm"><%= error %></div>
+    <% } %>
+  </form>
+</body>
+</html> 
