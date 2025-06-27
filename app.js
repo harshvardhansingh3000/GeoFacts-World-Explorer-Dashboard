@@ -13,7 +13,9 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import countryRoutes from './routes/country.js';
+import pgSession from 'connect-pg-simple';
 dotenv.config();
+const PgSession = pgSession(session);
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -26,6 +28,10 @@ app.use(express.static(path.join(__dirname,'public')));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended:true}));
 app.use(session({
+    store: new PgSession({
+        pool: db,
+        tableName: 'session',
+    }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
