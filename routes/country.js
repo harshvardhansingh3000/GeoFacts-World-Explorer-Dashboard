@@ -117,12 +117,37 @@ export default (db) => {
     router.post("/note", ensureAuthenticated, async (req, res) => {
         const { country_code, note } = req.body;
         const user_id = req.user.id;
+        console.log('POST /note', { user_id, country_code, note });
+        if (!note || !country_code || note.trim() === "") {
+            console.log('Note or country_code missing or empty');
+            return res.status(400).json({ error: "Note cannot be empty." });
+        }
         try {
             await db.query(
                 "INSERT INTO notes (user_id, country_code, note) VALUES ($1, $2, $3) ON CONFLICT (user_id, country_code) DO UPDATE SET note = $3, created_at = CURRENT_TIMESTAMP",
                 [user_id, country_code, note]
             );
             res.json({ success: true, message: 'Note saved' });
+        } catch (err) {
+            console.error('Error saving note:', err.message, err.stack);
+            res.status(500).json({ error: "Database error", details: err.message });
+        }
+    });
+
+    // Get note for a country
+    router.get("/note/:country_code", ensureAuthenticated, async (req, res) => {
+        const { country_code } = req.params;
+        const user_id = req.user.id;
+        try {
+            const result = await db.query(
+                "SELECT note FROM notes WHERE user_id = $1 AND country_code = $2",
+                [user_id, country_code]
+            );
+            if (result.rows.length > 0) {
+                res.json({ note: result.rows[0].note });
+            } else {
+                res.json({ note: null });
+            }
         } catch (err) {
             res.status(500).json({ error: "Database error" });
         }

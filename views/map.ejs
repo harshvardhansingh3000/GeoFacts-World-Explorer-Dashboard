@@ -56,7 +56,11 @@
               </div>
               <p id="aqi-health" class="mt-2 text-center text-sm"></p>
             </div>
-            <!-- Add more fields as needed -->
+            <!-- User Note Section -->
+            <div id="user-note-section" class="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg hidden">
+              <h3 class="text-lg font-semibold mb-2 text-center">Your Note</h3>
+              <p id="user-note-content" class="text-gray-800 dark:text-gray-100 text-center"></p>
+            </div>
         </div>
     </div>
 
@@ -64,20 +68,18 @@
       <!-- Floating Action Button (FAB) -->
       <div id="fab-container" class="fixed bottom-8 left-8 z-[100] flex flex-col items-start gap-3 border-hidden">
         <!-- Action Buttons (hidden by default) -->
-        <button id="fab-visited" class="hidden bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">✅</button>
-        <button id="fab-wishlist" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">⭐</button>
-        <button id="fab-note" class="hidden bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition">📝</button>
+        <button id="fab-visited" class="hidden bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition" aria-label="Visited">✅</button>
+        <button id="fab-wishlist" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition" aria-label="Wishlist">⭐</button>
+        <button id="fab-note" class="hidden bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition" aria-label="Note">📝</button>
         <!-- Main FAB -->
-        <button id="fab-main" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl transition">+</button>
-      </div>
-      <!-- Note Modal -->
-      <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[200] hidden">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-          <h3 class="text-lg font-bold mb-2 text-gray-800 dark:text-gray-100">Add a Note</h3>
-          <textarea id="note-text" class="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:text-gray-100" rows="4" placeholder="Write your note..."></textarea>
+        <button id="fab-main" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl transition" aria-label="Menu">+</button>
+        <!-- Note Popover -->
+        <div id="note-popover" class="hidden absolute left-20 bottom-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg w-72 z-[110] border border-gray-200 dark:border-gray-700">
+          <h3 class="text-base font-bold mb-2 text-gray-800 dark:text-gray-100">Your Note</h3>
+          <textarea id="note-text" class="w-full p-2 border rounded mb-3 dark:bg-gray-700 dark:text-gray-100" rows="3" placeholder="Write your note..."></textarea>
           <div class="flex justify-end gap-2">
-            <button id="note-cancel" class="px-4 py-2 rounded bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100">Cancel</button>
-            <button id="note-save" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+            <button id="note-cancel" class="px-3 py-1 rounded bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100">Cancel</button>
+            <button id="note-save" class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
           </div>
         </div>
       </div>

@@ -174,6 +174,8 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
                 displayWeather(null);
                 displayAQI(null);
               }
+
+              fetchAndDisplayUserNote(code);
             })
             .catch(err => console.error("REST Countries API error:", err));
         });
@@ -188,25 +190,28 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
 // Function to update FAB button states and text
 function updateFABButtonStates(countryCode) {
     if (!userIsLoggedIn) return;
-    
+
     const isVisited = visitedCountries.has(countryCode);
     const isInWishlist = wishlistCountries.has(countryCode);
-    
+
     const fabVisited = document.getElementById('fab-visited');
     const fabWishlist = document.getElementById('fab-wishlist');
-    
+    const fabNote = document.getElementById('fab-note');
+
     if (fabVisited) {
-        fabVisited.textContent = isVisited ? '✓ Visited' : '○ Mark Visited';
-        fabVisited.className = isVisited ? 
-            'fab-button bg-green-600 hover:bg-green-700' : 
-            'fab-button bg-gray-600 hover:bg-gray-700';
+        fabVisited.className = isVisited
+            ? 'bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition'
+            : 'bg-gray-600 hover:bg-green-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition';
     }
-    
+
     if (fabWishlist) {
-        fabWishlist.textContent = isInWishlist ? '★ In Wishlist' : '☆ Add to Wishlist';
-        fabWishlist.className = isInWishlist ? 
-            'fab-button bg-yellow-600 hover:bg-yellow-700' : 
-            'fab-button bg-gray-600 hover:bg-gray-700';
+        fabWishlist.className = isInWishlist
+            ? 'bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition'
+            : 'bg-gray-600 hover:bg-yellow-500 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition';
+    }
+
+    if (fabNote) {
+        fabNote.className = 'bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition';
     }
 }
 
@@ -311,10 +316,12 @@ const fabMain = document.getElementById('fab-main');
 const fabVisited = document.getElementById('fab-visited');
 const fabWishlist = document.getElementById('fab-wishlist');
 const fabNote = document.getElementById('fab-note');
-const noteModal = document.getElementById('note-modal');
+const notePopover = document.getElementById('note-popover');
 const noteText = document.getElementById('note-text');
 const noteCancel = document.getElementById('note-cancel');
 const noteSave = document.getElementById('note-save');
+const userNoteSection = document.getElementById('user-note-section');
+const userNoteContent = document.getElementById('user-note-content');
 
 let fabOpen = false;
 if (fabMain) {
@@ -323,6 +330,20 @@ if (fabMain) {
     [fabVisited, fabWishlist, fabNote].forEach(btn => btn && btn.classList.toggle('hidden', !fabOpen));
     fabMain.textContent = fabOpen ? '×' : '+';
   };
+}
+
+// Update FAB button styles
+if (fabVisited) {
+  fabVisited.className = 'fab-button bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition relative group';
+  fabVisited.title = 'Visited';
+}
+if (fabWishlist) {
+  fabWishlist.className = 'fab-button bg-yellow-400 hover:bg-yellow-500 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl transition relative group';
+  fabWishlist.title = 'Wishlist';
+}
+if (fabNote) {
+  fabNote.className = 'fab-button bg-gray-700 hover:bg-blue-600 text-white rounded-xl shadow-lg w-16 h-10 flex items-center justify-center text-2xl transition relative group';
+  fabNote.title = 'Add/View Note';
 }
 
 if (fabVisited) {
@@ -397,32 +418,49 @@ if (fabWishlist) {
   };
 }
 
-if (fabNote && noteModal && noteText && noteCancel && noteSave) {
-  fabNote.onclick = () => {
-    noteModal.classList.remove('hidden');
-    if (fabMain) fabMain.click();
-  };
-  noteCancel.onclick = () => {
-    noteModal.classList.add('hidden');
-    noteText.value = '';
-  };
-  noteSave.onclick = () => {
-    console.log('Note save clicked');
-    console.log('currentCountryCode when clicking FAB:', currentCountryCode);
+if (fabNote && notePopover && noteText && noteCancel && noteSave) {
+  fabNote.onclick = async () => {
     if (!currentCountryCode) {
       showToast('Please select a country first.', 'bg-red-600');
       return;
     }
-    fetch('/country/note', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country_code: currentCountryCode, note: noteText.value })
-    })
-    .then(res => res.json())
-    .then(data => showToast(data.message || 'Note saved!', 'bg-blue-600'))
-    .catch(() => showToast('Error saving note', 'bg-red-600'));
-    noteModal.classList.add('hidden');
-    noteText.value = '';
+    // Fetch current note for this country
+    let note = '';
+    try {
+      const res = await fetch(`/country/note/${currentCountryCode}`);
+      const data = await res.json();
+      note = data.note || '';
+    } catch (err) { note = ''; }
+    showNotePopover(note);
+    if (fabMain) fabMain.click();
+  };
+  noteCancel.onclick = () => {
+    hideNotePopover();
+  };
+  noteSave.onclick = async () => {
+    if (!currentCountryCode) {
+      showToast('Please select a country first.', 'bg-red-600');
+      return;
+    }
+    const noteVal = noteText.value;
+    if (!noteVal || noteVal.trim() === "") {
+      showToast('Note cannot be empty.', 'bg-red-600');
+      return;
+    }
+    try {
+      const res = await fetch('/country/note', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country_code: currentCountryCode, note: noteVal })
+      });
+      const data = await res.json();
+      showToast(data.message || 'Note saved!', 'bg-blue-600');
+      // Update the side panel note
+      displayUserNote(noteVal);
+    } catch (err) {
+      showToast('Error saving note', 'bg-red-600');
+    }
+    hideNotePopover();
   };
 }
 
@@ -435,4 +473,60 @@ function showToast(message, color = 'bg-blue-600') {
   setTimeout(() => {
     toast.classList.add('hidden');
   }, 2500);
+}
+
+// Add Material Icons CDN if not present
+(function() {
+  if (!document.querySelector('link[href*="fonts.googleapis.com/icon"]')) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+    document.head.appendChild(link);
+  }
+})();
+
+// Note popover logic
+function showNotePopover(note = '') {
+  if (!notePopover) return;
+  notePopover.classList.remove('hidden');
+  noteText.value = note;
+  noteText.focus();
+}
+function hideNotePopover() {
+  if (!notePopover) return;
+  notePopover.classList.add('hidden');
+  noteText.value = '';
+}
+
+// Hide popover if clicking outside
+window.addEventListener('mousedown', function(e) {
+  if (notePopover && !notePopover.classList.contains('hidden')) {
+    if (!notePopover.contains(e.target) && e.target !== fabNote) {
+      hideNotePopover();
+    }
+  }
+});
+
+// Display user's note in the side panel
+function displayUserNote(note) {
+  if (!userNoteSection || !userNoteContent) return;
+  if (note && note.trim() !== '') {
+    userNoteSection.classList.remove('hidden');
+    userNoteContent.textContent = note;
+  } else {
+    userNoteSection.classList.add('hidden');
+    userNoteContent.textContent = '';
+  }
+}
+
+// Fetch and display note when a country is selected
+async function fetchAndDisplayUserNote(countryCode) {
+  if (!userIsLoggedIn) return;
+  try {
+    const res = await fetch(`/country/note/${countryCode}`);
+    const data = await res.json();
+    displayUserNote(data.note);
+  } catch (err) {
+    displayUserNote('');
+  }
 }
