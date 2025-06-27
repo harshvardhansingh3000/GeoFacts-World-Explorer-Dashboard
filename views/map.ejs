@@ -1,3 +1,4 @@
+<%- include("partials/navbar.ejs") %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +12,7 @@
     <link rel="stylesheet" href="/css/custom.css" />
 </head>
 <body data-logged-in="<%= user ? 'true' : 'false' %>">
-    <h1 class = "text-3xl underline text-red-900 bg-amber-400">GeoFacts</h1>
+    <!-- <h1 class = "text-3xl underline text-red-900 bg-amber-400">GeoFacts</h1> -->
     <div id="map"></div>
     <!-- Side Panel (always visible for debugging) -->
     <div id="side-panel"

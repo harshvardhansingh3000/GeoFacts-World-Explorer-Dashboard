@@ -1,0 +1,59 @@
+<nav class="bg-gradient-to-r from-blue-700 to-blue-400 dark:from-gray-900 dark:to-blue-900 shadow-lg px-4 py-3 flex items-center justify-between relative">
+  <div class="flex items-center gap-4">
+    <a href="/" class="text-2xl font-bold text-white dark:text-yellow-300 tracking-wide hover:text-yellow-300 transition">GeoFacts</a>
+    <!-- Hamburger button (mobile) -->
+    <button id="navbar-toggle" class="md:hidden ml-2 text-white dark:text-yellow-300 focus:outline-none text-3xl" aria-label="Open menu">&#9776;</button>
+    <!-- Nav links (desktop) -->
+    <div id="navbar-links" class="hidden md:flex items-center gap-2 ml-4">
+      <a href="/" class="text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Home</a>
+      <a href="/dashboard" class="text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Dashboard</a>
+      <a href="/map" class="text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Map</a>
+      <a href="/about" class="text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">About</a>
+      <a href="/contact" class="text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Contact Us</a>
+    </div>
+  </div>
+  <!-- Auth buttons (desktop) -->
+  <div id="navbar-auth" class="hidden md:flex items-center">
+    <% if (user) { %>
+      <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white dark:bg-red-700 dark:hover:bg-red-800 dark:text-white px-4 py-2 rounded shadow font-semibold transition">Logout</a>
+    <% } else { %>
+      <a href="/login" class="bg-white text-blue-700 hover:bg-blue-800 dark:bg-gray-200 dark:text-blue-900 dark:hover:bg-gray-300 px-4 py-2 rounded shadow font-semibold transition mr-2">Login</a>
+      <a href="/register" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 dark:bg-yellow-500 dark:hover:bg-yellow-400 dark:text-blue-900 px-4 py-2 rounded shadow font-semibold transition">Register</a>
+    <% } %>
+  </div>
+  <!-- Mobile menu (hidden by default) -->
+  <div id="mobile-menu" class="md:hidden absolute top-full left-0 w-full bg-gradient-to-r from-blue-700 to-blue-400 dark:from-gray-900 dark:to-blue-900 shadow-lg z-50 hidden">
+    <div class="flex flex-col items-start p-4 gap-2">
+      <a href="/" class="w-full text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Home</a>
+      <a href="/dashboard" class = "w-full text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Dashboard</a>
+      <a href="/map" class="w-full text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Map</a>
+      <a href="/about" class="w-full text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">About</a>
+      <a href="/contact" class="w-full text-white dark:text-gray-200 hover:text-yellow-300 dark:hover:text-yellow-300 px-3 py-2 rounded transition font-medium">Contact Us</a>
+      <div class="w-full border-t border-blue-300 dark:border-gray-700 my-2"></div>
+      <% if (user) { %>
+        <a href="/logout" class="w-full bg-red-500 hover:bg-red-600 text-white dark:bg-red-700 dark:hover:bg-red-800 dark:text-white px-4 py-2 rounded shadow font-semibold transition">Logout</a>
+      <% } else { %>
+        <a href="/login" class="w-full bg-white text-blue-700 hover:bg-blue-800 dark:bg-gray-200 dark:text-blue-900 dark:hover:bg-gray-300 px-4 py-2 rounded shadow font-semibold transition mb-2">Login</a>
+        <a href="/register" class="w-full bg-yellow-400 hover:bg-yellow-500 text-blue-900 dark:bg-yellow-500 dark:hover:bg-yellow-400 dark:text-blue-900 px-4 py-2 rounded shadow font-semibold transition">Register</a>
+      <% } %>
+    </div>
+  </div>
+  <script>
+    // Hamburger menu toggle
+    const toggleBtn = document.getElementById('navbar-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    toggleBtn && toggleBtn.addEventListener('click', () => {
+      if (mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+      } else {
+        mobileMenu.classList.add('hidden');
+      }
+    });
+    // Hide mobile menu on resize to md+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        mobileMenu.classList.add('hidden');
+      }
+    });
+  </script>
+</nav> 

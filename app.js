@@ -79,8 +79,34 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/',(req,res)=>{
-    res.render('dashboard');
+app.get('/', (req, res) => {
+  res.render('home', { user: req.user });
+});
+app.get('/about', (req, res) => {
+  res.render('about', { user: req.user });
+});
+app.get('/contact', (req, res) => {
+  res.render('contact', { user: req.user });
+});
+
+app.get('/dashboard', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const user_id = req.user.id;
+  try {
+    const visitedResult = await db.query('SELECT country_code FROM visited WHERE user_id = $1', [user_id]);
+    const wishlistResult = await db.query('SELECT country_code FROM wishlist WHERE user_id = $1', [user_id]);
+    const notesResult = await db.query('SELECT country_code FROM notes WHERE user_id = $1', [user_id]);
+    res.render('dashboard', {
+      user: req.user,
+      visitedCount: visitedResult.rows.length,
+      wishlistCount: wishlistResult.rows.length,
+      notesCount: notesResult.rows.length,
+      visitedCountries: visitedResult.rows.map(r => r.country_code),
+      wishlistCountries: wishlistResult.rows.map(r => r.country_code)
+    });
+  } catch (err) {
+    res.status(500).send('Error loading dashboard');
+  }
 });
 
 app.get('/map',(req,res)=>{

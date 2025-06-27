@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <%- include("partials/navbar.ejs") %>
+    <div class="bg-gradient-to-br from-blue-100 to-blue-300 dark:from-gray-900 dark:to-gray-800 min-h-[50vh] flex flex-col items-center justify-center py-16">
+        <h1 class="text-5xl font-extrabold text-blue-800 dark:text-blue-200 mb-4 drop-shadow">Explore the World with GeoFacts</h1>
+        <p class="text-xl text-blue-900 dark:text-blue-100 mb-8">Discover country facts, weather, air quality, and track your travels on an
+            interactive map.</p>
+        <a href="<%= user ? '/map' : '/register' %>"
+            class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 dark:text-gray-900 px-8 py-4 rounded-full text-xl font-bold shadow-lg transition">Get
+            Started</a>
+    </div>
+    <div class="max-w-4xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-2">🌍</div>
+            <h2 class="text-xl font-bold mb-2 text-blue-900 dark:text-blue-200">Interactive Map</h2>
+            <p class="text-gray-700 dark:text-gray-200">Click any country to see facts, weather, and more.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-2">⭐</div>
+            <h2 class="text-xl font-bold mb-2 text-blue-900 dark:text-blue-200">Wishlist & Visited</h2>
+            <p class="text-gray-700 dark:text-gray-200">Track where you've been and where you want to go.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 text-center">
+            <div class="text-4xl mb-2">📝</div>
+            <h2 class="text-xl font-bold mb-2 text-blue-900 dark:text-blue-200">Notes</h2>
+            <p class="text-gray-700 dark:text-gray-200">Add personal notes for each country you explore.</p>
+        </div>
+    </div>
+</body>
+</html>
+
