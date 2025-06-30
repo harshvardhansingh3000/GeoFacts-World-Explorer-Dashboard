@@ -47,6 +47,16 @@ CREATE TABLE IF NOT EXISTS aqi_cache (
     UNIQUE(lat, lon)
 );
 
+-- Session table for connect-pg-simple (express-session store)
+CREATE TABLE IF NOT EXISTS session (
+    sid VARCHAR NOT NULL COLLATE "default",
+    sess JSON NOT NULL,
+    expire TIMESTAMP(6) NOT NULL,
+    CONSTRAINT session_pkey PRIMARY KEY (sid)
+);
+
+CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session (expire);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_visited_user_id ON visited(user_id);
 CREATE INDEX IF NOT EXISTS idx_visited_country_code ON visited(country_code);

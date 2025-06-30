@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 import axios from 'axios';
 import bodyparser from 'body-parser';
 import authRoutes from './routes/auth.js';
-import db from './models/db.js';
+import pool from './models/db.js';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -29,7 +29,7 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended:true}));
 app.use(session({
     store: new PgSession({
-        pool: db,
+        pool: pool,
         tableName: 'session',
     }),
     secret: process.env.SESSION_SECRET,
@@ -45,7 +45,7 @@ passport.use(new LocalStrategy(
   { usernameField: "email" },
   async (email, password, done) => {
     try {
-      const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+      const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
       if (result.rows.length === 0) return done(null, false, { message: "User not found" });
       const user = result.rows[0];
       bcrypt.compare(password, user.password_hash, (err, isMatch) => {
@@ -65,7 +65,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const result = await db.query("SELECT * FROM users WHERE id = $1", [id]);
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
     if (result.rows.length === 0) return done(null, false);
     done(null, result.rows[0]);
   } catch (err) {
@@ -93,9 +93,9 @@ app.get('/dashboard', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const user_id = req.user.id;
   try {
-    const visitedResult = await db.query('SELECT country_code FROM visited WHERE user_id = $1', [user_id]);
-    const wishlistResult = await db.query('SELECT country_code FROM wishlist WHERE user_id = $1', [user_id]);
-    const notesResult = await db.query('SELECT country_code FROM notes WHERE user_id = $1', [user_id]);
+    const visitedResult = await pool.query('SELECT country_code FROM visited WHERE user_id = $1', [user_id]);
+    const wishlistResult = await pool.query('SELECT country_code FROM wishlist WHERE user_id = $1', [user_id]);
+    const notesResult = await pool.query('SELECT country_code FROM notes WHERE user_id = $1', [user_id]);
     res.render('dashboard', {
       user: req.user,
       visitedCount: visitedResult.rows.length,
@@ -117,8 +117,8 @@ app.get('/map',(req,res)=>{
     }
 });
 
-app.use('/',authRoutes(passport, db));
-app.use('/country', countryRoutes(db));
+app.use('/',authRoutes(passport, pool));
+app.use('/country', countryRoutes(pool));
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
