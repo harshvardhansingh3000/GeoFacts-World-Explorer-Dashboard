@@ -86,11 +86,6 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🖥️ Screenshots
-> _Add screenshots or GIFs of your Home, Dashboard, Map, and mobile navbar here!_
-
----
-
 ## 📚 Pages Overview
 - **Home:** Welcome, features, Get Started button
 - **Dashboard:** User stats, flag grid, modern cards
