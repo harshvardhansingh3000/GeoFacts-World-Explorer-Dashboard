@@ -30,15 +30,20 @@
       <form action="/register" method="POST" class="space-y-4">
         <div>
           <label class="block text-blue-900 dark:text-blue-200 font-semibold mb-1">Username</label>
-          <input type="text" name="name" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+          <input type="text" name="name" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400 dark:text-amber-50" required />
         </div>
         <div>
           <label class="block text-blue-900 dark:text-blue-200 font-semibold mb-1">Email</label>
-          <input type="email" name="email" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+          <input type="email" name="email" class="w-full p-2 dark:text-amber-50 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" required />
         </div>
         <div>
           <label class="block text-blue-900 dark:text-blue-200 font-semibold mb-1">Password</label>
-          <input type="password" name="password" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+          <div class="relative">
+            <input id="password" type="password" name="password" class="w-full p-2 dark:text-amber-50 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10" required />
+            <button type="button" onclick="togglePassword()" tabindex="-1" class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-300 focus:outline-none">
+              <span id="togglePwdIcon" class="text-xl">&#128065;</span>
+            </button>
+          </div>
         </div>
         <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 px-6 py-2 rounded shadow font-semibold transition w-full">Register</button>
       </form>
